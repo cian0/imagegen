@@ -111,6 +111,8 @@ python /workspace/imagegen/generateimages_local.py
 
 aws s3 cp /workspace/sdw/outputs s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/outputs --recursive 
 
+aws s3 cp "/workspace/logs" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs.txt
+
 apt-get install -y wget; wget https://raw.githubusercontent.com/vast-ai/vast-python/master/vast.py -O vast; chmod +x vast;
 ./vast destroy instance ${VAST_CONTAINERLABEL:2}
 
