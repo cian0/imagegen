@@ -197,7 +197,8 @@ curl -X POST \
      -H "Content-Type: application/json" \
      -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Finished training for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
      https://api.telegram.org/$TG_API_KEY/sendMessage
-
+     
+mv /workspace/imagegen/convert_diffusers_to_original_stable_diffusion.py ./convert_diffusers_to_original_stable_diffusion.py
 python convert_diffusers_to_original_stable_diffusion.py --model_path "$OUTPUT_DIR/2200"  --checkpoint_path "$OUTPUT_DIR/2200/model.ckpt" --half
 
 aws s3 cp "$OUTPUT_DIR/2200/model.ckpt" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt
