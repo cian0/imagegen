@@ -73,7 +73,7 @@ GPU_NAME=`nvidia-smi --query-gpu=gpu_name --format=csv,noheader`
 
 aws s3 cp s3://$MODEL_BUCKET/xformerwheels/ ./ --recursive
 
-aws s3 cp s3://$MODEL_BUCKET/class_images/person /content/data/person --recursive
+# aws s3 cp s3://$MODEL_BUCKET/class_images/person /content/data/person --recursive
 
 if [[ $GPU_NAME == *"3090"* ]]; then
     export FORCE_CUDA="1" && \
@@ -100,12 +100,15 @@ git clone https://github.com/CompVis/stable-diffusion.git
 
 aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt /workspace/$MODEL_ID.ckpt 
 
-wget -q https://github.com/ShivamShrirao/diffusers/raw/main/scripts/convert_original_stable_diffusion_to_diffusers.py
-
+# wget -q https://github.com/ShivamShrirao/diffusers/raw/main/scripts/convert_original_stable_diffusion_to_diffusers.py
+# wget -O convert_original_stable_diffusion_to_diffusers.py -q https://raw.githubusercontent.com/cian0/shivamdiffusers/master/scripts/convert_original_stable_diffusion_to_diffusers.py?token=GHSAT0AAAAAAB3NPWQKSKAPG27I4RVRBQX4Y33HGPA
 pip install omegaconf
 pip install boto3 
 
-python convert_original_stable_diffusion_to_diffusers.py --checkpoint_path "/workspace/$MODEL_ID.ckpt" --original_config_file "/workspace/stable-diffusion/configs/stable-diffusion/v1-inference.yaml" --dump_path "/workspace/model"
+mv /workspace/imagegen/convert_original_stable_diffusion_to_diffusers.py /workspace/convert_original_stable_diffusion_to_diffusers.py
+mv /workspace/imagegen/v1-inference.yaml /workspace/v1-inference.yaml
+
+python convert_original_stable_diffusion_to_diffusers.py --checkpoint_path "/workspace/$MODEL_ID.ckpt" --original_config_file "/workspace/v1-inference.yaml" --dump_path "/workspace/model"
 
 # mv "$OUTPUT_DIR/2200" "/workspace/model"
 
