@@ -113,7 +113,7 @@ while ctr < num_batches:
             img2img_output[0].save('/workspace/imagegen/outputs/' +unique_filename + ".png")
 
             # aws s3 cp /workspace/sdw/outputs s3://$MODEL_BUCKET/$/outputs --recursive 
-            # s3.Bucket(BUCKET).upload_file('/workspace/imagegen/outputs/' +unique_filename + ".png", f"{S3_PATH}/{MODEL_ID}/outputs/{unique_filename}.png")
+            s3.Bucket(BUCKET).upload_file('/workspace/imagegen/outputs/' +unique_filename + ".png", f"{S3_PATH}/{MODEL_ID}/outputs/{unique_filename}.png")
             # display(img2img_output[0])
     ctr+=1
 
