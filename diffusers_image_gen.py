@@ -4,6 +4,7 @@ import random
 import uuid
 
 import boto3 
+import subprocess
 import torch
 from torch import autocast
 from diffusers import StableDiffusionPipeline, DDIMScheduler, EulerAncestralDiscreteScheduler, StableDiffusionImg2ImgPipeline
@@ -113,7 +114,19 @@ while ctr < num_batches:
             img2img_output[0].save('/workspace/imagegen/outputs/' +unique_filename + ".png")
 
             # aws s3 cp /workspace/sdw/outputs s3://$MODEL_BUCKET/$/outputs --recursive 
-            s3.Bucket(BUCKET).upload_file('/workspace/imagegen/outputs/' +unique_filename + ".png", f"{S3_PATH}/{MODEL_ID}/outputs/{unique_filename}.png")
+            # s3.Bucket(BUCKET).upload_file('/workspace/imagegen/outputs/' +unique_filename + ".png", f"{S3_PATH}/{MODEL_ID}/outputs/{unique_filename}.png")
+
+            subprocess.run([
+                "/workspace/imagegen/face_detect_purge_diffusers.sh"
+            ])
+            subprocess.run([
+                "aws", 
+                "s3", 
+                "sync", 
+                # f"/workspace/matched",
+                "/workspace/matcher/similar/outputs",
+                f"s3://aimodels-cyian/models/{MODEL_ID}/outputs",
+            ])
             # display(img2img_output[0])
     ctr+=1
 
