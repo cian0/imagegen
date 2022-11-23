@@ -213,6 +213,18 @@ curl -X POST \
 cd ~
 cat ~/.ssh/authorized_keys | md5sum | awk '{print $1}' > ssh_key_hv; echo -n $VAST_CONTAINERLABEL | md5sum | awk '{print $1}' > instance_id_hv; head -c -1 -q ssh_key_hv instance_id_hv > ~/.vast_api_key;
 apt-get install -y wget; wget https://raw.githubusercontent.com/vast-ai/vast-python/master/vast.py -O vast; chmod +x vast;
+
+FILE=$OUTPUT_DIR/2200/model.ckpt
+if test -f "$FILE"; then
+    echo "$FILE exists."
+    ./vast destroy instance ${VAST_CONTAINERLABEL:2}
+else 
+    curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Model cannot be uploaded for $MODEL_ID $MODEL_KEY $MODEL_CLASS, not shutting down\", \"disable_notification\": true}" \
+        https://api.telegram.org/$TG_API_KEY/sendMessage
+fi
+
 ./vast destroy instance ${VAST_CONTAINERLABEL:2}
 
 sleep infinity
