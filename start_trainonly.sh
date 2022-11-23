@@ -202,6 +202,7 @@ mv /workspace/imagegen/convert_diffusers_to_original_stable_diffusion.py ./conve
 python convert_diffusers_to_original_stable_diffusion.py --model_path "$OUTPUT_DIR/2200"  --checkpoint_path "$OUTPUT_DIR/2200/model.ckpt" --half
 
 aws s3 cp "$OUTPUT_DIR/2200/model.ckpt" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt
+aws s3 cp "/workspace/logs" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs.txt
 
 curl -X POST \
      -H "Content-Type: application/json" \
