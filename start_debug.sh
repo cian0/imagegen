@@ -239,7 +239,7 @@ curl -X POST \
      -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Finished image gen for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
      https://api.telegram.org/$TG_API_KEY/sendMessage
 
-aws s3 cp "/workspace/logs" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs.txt
+aws s3 cp "/workspace/logs_debug" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs_debug.txt
 
 # end instance
 cd ~
