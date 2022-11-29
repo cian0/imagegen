@@ -26,7 +26,8 @@ export RESTORE_FACES=$_RESTORE_FACES
 export BATCH_ITER=$_BATCH_ITER
 export HIGHRES_FIX=$_HIGHRES_FIX
 # export _HIGHRES_FIX_DENOISING=$_HIGHRES_FIX_DENOISING
-bexport TG_CHANNEL_ID=$_TG_CHANNEL_ID
+export TG_API_KEY=$_TG_API_KEY
+export TG_CHANNEL_ID=$_TG_CHANNEL_ID
 
 cd /workspace/sdw
 git reset --hard
@@ -111,21 +112,21 @@ curl -X POST \
 
 cd /workspace/imagegen
 mkdir outputs
-accelerate launch diffusers_image_gen.py
-accelerate launch diffusers_image_gen_debug.py
+# accelerate launch diffusers_image_gen.py
+# accelerate launch diffusers_image_gen_debug.py
 
-curl -X POST \
-     -H "Content-Type: application/json" \
-     -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Finished image gen for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
-     https://api.telegram.org/$TG_API_KEY/sendMessage
+# curl -X POST \
+#      -H "Content-Type: application/json" \
+#      -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Finished image gen for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
+#      https://api.telegram.org/$TG_API_KEY/sendMessage
 
-aws s3 cp "/workspace/logs" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs.txt
+# aws s3 cp "/workspace/logs" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs.txt
 
 # end instance
 cd ~
 cat ~/.ssh/authorized_keys | md5sum | awk '{print $1}' > ssh_key_hv; echo -n $VAST_CONTAINERLABEL | md5sum | awk '{print $1}' > instance_id_hv; head -c -1 -q ssh_key_hv instance_id_hv > ~/.vast_api_key;
 apt-get install -y wget; wget https://raw.githubusercontent.com/vast-ai/vast-python/master/vast.py -O vast; chmod +x vast;
-./vast destroy instance ${VAST_CONTAINERLABEL:2}
+# ./vast destroy instance ${VAST_CONTAINERLABEL:2}
 
 sleep infinity
 wait
