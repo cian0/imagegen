@@ -33,8 +33,8 @@ model_class = os.getenv('MODEL_CLASS')
 model_path = '/workspace/model' #WEIGHTS_DIR             # If you want to use previously trained model saved in gdrive, replace this with the full path of model in gdrive
 
 # scheduler = DDIMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", clip_sample=False, set_alpha_to_one=False)
-# scheduler = EulerAncestralDiscreteScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear")
-scheduler = EulerAncestralDiscreteScheduler()
+scheduler = EulerAncestralDiscreteScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear")
+# scheduler = EulerAncestralDiscreteScheduler()
 pipe = StableDiffusionPipeline.from_pretrained(model_path, scheduler=scheduler
 #                                                , safety_checker=StableDiffusionSafetyChecker
 #                                                , feature_extractor=CLIPFeatureExtractor
