@@ -53,7 +53,7 @@ g_cuda = None
 
 key = f"{MODEL_ID} person"
 prompt = f"{MODEL_ID} person" #@param {type:"string"}
-negative_prompt = "blurry, pixelated, faceless" #@param {type:"string"}
+negative_prompt = "blurry, pixelated, faceless, sexy, cleavage, sensual, titties" #@param {type:"string"}
 num_samples = BATCH_SAMPLES #@param {type:"number"}
 guidance_scale = 7.5 #@param {type:"number"}
 # num_inference_steps = 70 #@param {type:"number"}
