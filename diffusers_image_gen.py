@@ -20,14 +20,21 @@ from transformers import CLIPFeatureExtractor
 BUCKET = os.getenv('MODEL_BUCKET')
 S3_PATH = os.getenv('MODEL_PATH')
 MODEL_ID = os.getenv('MODEL_ID')
+
+BATCH_ITER = int(os.getenv('BATCH_ITER'))
+BATCH_SAMPLES = int(os.getenv('BATCH_SAMPLES'))
+SAMPLING_STEPS = int(os.getenv('SAMPLING_STEPS'))
+
 TG_API_KEY = os.environ.get('TG_API_KEY')
 TG_CHANNEL_ID = os.environ.get('TG_CHANNEL_ID')
+PROMPTLIST = os.environ.get('PROMPTLIST')
 model_class = os.getenv('MODEL_CLASS')
 
 model_path = '/workspace/model' #WEIGHTS_DIR             # If you want to use previously trained model saved in gdrive, replace this with the full path of model in gdrive
 
-scheduler = DDIMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", clip_sample=False, set_alpha_to_one=False)
+# scheduler = DDIMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", clip_sample=False, set_alpha_to_one=False)
 # scheduler = EulerAncestralDiscreteScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear")
+scheduler = EulerAncestralDiscreteScheduler()
 pipe = StableDiffusionPipeline.from_pretrained(model_path, scheduler=scheduler
 #                                                , safety_checker=StableDiffusionSafetyChecker
 #                                                , feature_extractor=CLIPFeatureExtractor
@@ -47,10 +54,11 @@ g_cuda = None
 key = f"{MODEL_ID} person"
 prompt = f"{MODEL_ID} person" #@param {type:"string"}
 negative_prompt = "blurry, pixelated, faceless" #@param {type:"string"}
-num_samples = 4 #@param {type:"number"}
+num_samples = BATCH_SAMPLES #@param {type:"number"}
 guidance_scale = 7.5 #@param {type:"number"}
 # num_inference_steps = 70 #@param {type:"number"}
-num_inference_steps = 50 #@param {type:"number"}
+num_inference_steps = SAMPLING_STEPS #@param {type:"number"}
+num_inference_steps_imgtoimg = SAMPLING_STEPS
 height = 512 #@param {type:"number"}
 width = 512 #@param {type:"number"}
 
@@ -60,9 +68,12 @@ if model_class == 'man':
 else:
     promptsarr = woman_prompts
 
+if PROMPTLIST != None and PROMPTLIST != '':
+    promptsarr = PROMPTLIST.split('||')
 
+uploadedCtr = 0
 ctr = 0
-num_batches = 50
+num_batches = BATCH_ITER
 s3 = boto3.resource('s3')
 
 def send_post_req(input, host):
@@ -107,7 +118,7 @@ while ctr < num_batches:
             img2img_output = img2img_pipe(
                 prompt=realprompt, 
                 init_image=img, 
-                num_inference_steps=80,
+                num_inference_steps=num_inference_steps_imgtoimg,
                 strength=0.25,
                 guidance_scale=8).images
             unique_filename = str(uuid.uuid4())
