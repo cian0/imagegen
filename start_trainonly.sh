@@ -226,7 +226,5 @@ else
         https://api.telegram.org/$TG_API_KEY/sendMessage
 fi
 
-./vast destroy instance ${VAST_CONTAINERLABEL:2}
-
 sleep infinity
 wait

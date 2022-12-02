@@ -90,10 +90,11 @@ cd /workspace/
 git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 git clone https://github.com/CompVis/stable-diffusion.git
 
-cd stable-diffusion-webui
-./webui.sh
-
 aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt /workspace/$MODEL_ID.ckpt 
+
+cd stable-diffusion-webui
+mv /workspace/$MODEL_ID.ckpt /workspace/stable-diffusion-webui/$MODEL_ID.ckpt
+./webui.sh
 
 # ./vast destroy instance ${VAST_CONTAINERLABEL:2}
 
