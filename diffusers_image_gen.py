@@ -51,8 +51,8 @@ img2img_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
 
 g_cuda = None
 
-key = f"{MODEL_ID} person"
-prompt = f"{MODEL_ID} person" #@param {type:"string"}
+key = f"{MODEL_ID} {model_class}"
+prompt = f"{MODEL_ID} {model_class}" #@param {type:"string"}
 negative_prompt = "blurry, pixelated, faceless, sexy, cleavage, sensual, titties" #@param {type:"string"}
 num_samples = BATCH_SAMPLES #@param {type:"number"}
 guidance_scale = 7.5 #@param {type:"number"}
