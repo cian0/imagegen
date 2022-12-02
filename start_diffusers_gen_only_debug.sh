@@ -5,8 +5,8 @@ cd /workspace/sdw/examples/dreambooth
 wget -q https://github.com/ShivamShrirao/diffusers/raw/main/examples/dreambooth/train_dreambooth.py \
     && wget -q https://github.com/ShivamShrirao/diffusers/raw/main/scripts/convert_diffusers_to_original_stable_diffusion.py \
     && pip install -qq git+https://github.com/ShivamShrirao/diffusers@219e279b0376d60382fce6a993641f806710ac44  \
-    && pip install -q -U --pre triton \
-    && pip install -q accelerate==0.12.0 transformers ftfy bitsandbytes gradio natsort
+    && pip install -U --pre triton==2.0.0.dev20221105 \
+    && pip install accelerate==0.12.0 transformers==4.24.0 ftfy==6.1.1 bitsandbytes gradio natsort==8.2.0
 
 export MODEL_ID=$_MODEL_ID
 export MODEL_KEY=$_MODEL_KEY
