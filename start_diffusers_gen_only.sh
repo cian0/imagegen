@@ -80,7 +80,7 @@ else
         -H "Content-Type: application/json" \
         -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"DLIB has to be compiled for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
         https://api.telegram.org/$TG_API_KEY/sendMessage
-
+    pip uninstall -y dlib
     apt-get -y install build-essential cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev
     git clone https://github.com/davisking/dlib
     cd dlib
