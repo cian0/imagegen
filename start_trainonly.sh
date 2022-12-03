@@ -17,6 +17,7 @@ export MODEL_BUCKET=$_MODEL_BUCKET
 export REPO_ID=$_REPO_ID
 export BATCH_SAMPLES=$_BATCH_SAMPLES
 export CFG_SCALE=$_CFG_SCALE
+export MODEL_NAME=$_PRETRAINED_MODEL_PATH
 export SAMPLING_STEPS=$_SAMPLING_STEPS
 export SAMPLING_METHOD=$_SAMPLING_METHOD
 export RANDOM_PROMPTS=$_RANDOM_PROMPTS
@@ -43,20 +44,6 @@ curl -X POST \
      -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting processing for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
      https://api.telegram.org/$TG_API_KEY/sendMessage
 
-cd /workspace
-# install dlib first
-apt-get -y install build-essential cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev
-git clone https://github.com/davisking/dlib
-cd dlib
-python3 setup.py install
-
-#install face recognition
-pip3 install face_recognition
-
-cd /workspace
-mkdir -p ~/.huggingface
-echo -n "$HUGGINGFACE_TOKEN" > ~/.huggingface/token
-
 pip install awscli --upgrade --user
 mv /root/.local/bin/aws* /bin
 
@@ -69,6 +56,40 @@ aws configure set aws_access_key_id AWS_ACCESS_KEY_ID
 aws configure set aws_secret_access_key AWS_SECRET_ACCESS_KEY
 aws configure set region "ap-southeast-1"
 aws configure set output "json"
+
+cd /workspace
+# install dlib first
+
+aws s3 cp s3://$MODEL_BUCKET/dlibwheels/ ./ --recursive
+pip install /workspace/ubuntu1804/dlib-19.24.99-cp39-cp39-linux_x86_64.whl
+
+
+if python -c "import dlib" &> /dev/null; then
+    echo 'all good'
+else
+    echo 'uh oh'
+
+    curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"DLIB has to be compiled for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
+        https://api.telegram.org/$TG_API_KEY/sendMessage
+        
+    apt-get -y install build-essential cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev
+    git clone https://github.com/davisking/dlib
+    cd dlib
+    python3 setup.py install
+fi
+# aws s3 cp /workspace/dlib/dist/dlib-19.24.99-cp39-cp39-linux_x86_64.whl s3://aimodels-cyian/dlibwheels/ubuntu1804/
+
+# python setup.py bdist_wheel # for building the wheel file
+
+#install face recognition
+pip3 install face_recognition
+
+cd /workspace
+mkdir -p ~/.huggingface
+echo -n "$HUGGINGFACE_TOKEN" > ~/.huggingface/token
+
 
 GPU_NAME=`nvidia-smi --query-gpu=gpu_name --format=csv,noheader`
 
@@ -94,6 +115,9 @@ aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$TRAINING_PATH ./training_sam
 mv ./training_samples ./uncropped
 
 python3 /workspace/imagegen/face_cropper.py /content/data/$MODEL_ID/uncropped /content/data/$MODEL_ID/training_samples
+
+# TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
+STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
 
 mkdir -p ~/.cache/huggingface/accelerate/
 
@@ -122,7 +146,7 @@ pip install -U --pre triton==2.0.0.dev20221105 \
 cd /workspace/sdw/
 git checkout 219e279b0376d60382fce6a993641f806710ac44
 
-export MODEL_NAME="runwayml/stable-diffusion-v1-5" 
+# export MODEL_NAME="runwayml/stable-diffusion-v1-5" 
 export OUTPUT_DIR="/workspace/sdw/examples/dreambooth/stable_diffusion_weights/output" 
 
 cat <<EOT > /workspace/sdw/examples/dreambooth/concepts_list.json
@@ -163,8 +187,8 @@ if [[ $GPU_NAME == *"3090"* ]]; then
         --lr_warmup_steps=0 \
         --num_class_images=80 \
         --sample_batch_size=4 \
-        --max_train_steps=2200 \
-        --save_interval=2200 \
+        --max_train_steps=$STEPS_BASED_ON_FILES \
+        --save_interval=$STEPS_BASED_ON_FILES \
         --save_sample_prompt="photo of $MODEL_ID person" \
         --concepts_list="concepts_list.json"
 fi
@@ -188,8 +212,8 @@ if [[ $GPU_NAME == *"A100"* ]]; then
         --lr_warmup_steps=0 \
         --num_class_images=80 \
         --sample_batch_size=4 \
-        --max_train_steps=1600 \
-        --save_interval=1200 \
+        --max_train_steps=$STEPS_BASED_ON_FILES \
+        --save_interval=$STEPS_BASED_ON_FILES \
         --save_sample_prompt="photo of $MODEL_ID person" \
         --concepts_list="concepts_list.json"
 fi

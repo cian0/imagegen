@@ -22,6 +22,7 @@ export SAMPLING_METHOD=$_SAMPLING_METHOD
 export RANDOM_PROMPTS=$_RANDOM_PROMPTS
 export WIDTH=$_WIDTH
 export HEIGHT=$_HEIGHT
+export MODEL_NAME=$_PRETRAINED_MODEL_PATH
 export RESTORE_FACES=$_RESTORE_FACES
 export BATCH_ITER=$_BATCH_ITER
 export HIGHRES_FIX=$_HIGHRES_FIX
@@ -45,17 +46,11 @@ curl -X POST \
 
 cd /workspace
 # install dlib first
-apt-get -y install build-essential cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev
-git clone https://github.com/davisking/dlib
-cd dlib
-python3 setup.py install
+# apt-get -y install build-essential cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev
+# git clone https://github.com/davisking/dlib
+# cd dlib
+# python3 setup.py install
 
-#install face recognition
-pip3 install face_recognition
-
-cd /workspace
-mkdir -p ~/.huggingface
-echo -n "$HUGGINGFACE_TOKEN" > ~/.huggingface/token
 
 pip install awscli --upgrade --user
 mv /root/.local/bin/aws* /bin
@@ -69,6 +64,48 @@ aws configure set aws_access_key_id AWS_ACCESS_KEY_ID
 aws configure set aws_secret_access_key AWS_SECRET_ACCESS_KEY
 aws configure set region "ap-southeast-1"
 aws configure set output "json"
+
+cd /workspace
+# install dlib first
+
+aws s3 cp s3://$MODEL_BUCKET/dlibwheels/ ./ --recursive
+pip install /workspace/ubuntu1804/dlib-19.24.99-cp39-cp39-linux_x86_64.whl
+
+if python -c "import dlib" &> /dev/null; then
+    echo 'all good'
+else
+    echo 'uh oh'
+
+    curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"DLIB has to be compiled for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
+        https://api.telegram.org/$TG_API_KEY/sendMessage
+
+    apt-get -y install build-essential cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev
+    git clone https://github.com/davisking/dlib
+    cd dlib
+    python3 setup.py install
+fi
+
+#install face recognition
+pip3 install face_recognition
+
+cd /workspace
+mkdir -p ~/.huggingface
+echo -n "$HUGGINGFACE_TOKEN" > ~/.huggingface/token
+
+# pip install awscli --upgrade --user
+# mv /root/.local/bin/aws* /bin
+
+# export AWS_ACCESS_KEY_ID=$S3_AK_ID
+# export AWS_SECRET_ACCESS_KEY=$S3_AKS
+# export AWS_DEFAULT_REGION="ap-southeast-1"
+# export AWS_DEFAULT_OUTPUT="json"
+
+# aws configure set aws_access_key_id AWS_ACCESS_KEY_ID
+# aws configure set aws_secret_access_key AWS_SECRET_ACCESS_KEY
+# aws configure set region "ap-southeast-1"
+# aws configure set output "json"
 
 GPU_NAME=`nvidia-smi --query-gpu=gpu_name --format=csv,noheader`
 
