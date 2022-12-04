@@ -257,9 +257,9 @@ curl -X POST \
      https://api.telegram.org/$TG_API_KEY/sendMessage
      
 mv /workspace/imagegen/convert_diffusers_to_original_stable_diffusion.py ./convert_diffusers_to_original_stable_diffusion.py
-python convert_diffusers_to_original_stable_diffusion.py --model_path "$OUTPUT_DIR/2200"  --checkpoint_path "$OUTPUT_DIR/2200/model.ckpt" --half
+python convert_diffusers_to_original_stable_diffusion.py --model_path "$OUTPUT_DIR/$STEPS_BASED_ON_FILES"  --checkpoint_path "$OUTPUT_DIR/$STEPS_BASED_ON_FILES/model.ckpt" --half
 
-aws s3 cp "$OUTPUT_DIR/2200/model.ckpt" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt
+aws s3 cp "$OUTPUT_DIR/$STEPS_BASED_ON_FILES/model.ckpt" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt
 aws s3 cp "/workspace/logs" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs.txt
 
 curl -X POST \
@@ -272,7 +272,7 @@ cd ~
 cat ~/.ssh/authorized_keys | md5sum | awk '{print $1}' > ssh_key_hv; echo -n $VAST_CONTAINERLABEL | md5sum | awk '{print $1}' > instance_id_hv; head -c -1 -q ssh_key_hv instance_id_hv > ~/.vast_api_key;
 apt-get install -y wget; wget https://raw.githubusercontent.com/vast-ai/vast-python/master/vast.py -O vast; chmod +x vast;
 
-FILE=$OUTPUT_DIR/2200/model.ckpt
+FILE=$OUTPUT_DIR/$STEPS_BASED_ON_FILES/model.ckpt
 if test -f "$FILE"; then
     echo "$FILE exists."
     ./vast destroy instance ${VAST_CONTAINERLABEL:2}
