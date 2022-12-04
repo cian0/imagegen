@@ -162,7 +162,7 @@ cd /workspace/sdw/examples/dreambooth/
 
 curl -X POST \
      -H "Content-Type: application/json" \
-     -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting training for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
+     -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting training for $MODEL_ID $MODEL_KEY $MODEL_CLASS with $STEPS_BASED_ON_FILES steps\", \"disable_notification\": true}" \
      https://api.telegram.org/$TG_API_KEY/sendMessage
 
 
