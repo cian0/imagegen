@@ -199,7 +199,7 @@ export GPU_NAME=$(nvidia-smi --query-gpu=gpu_name --format=csv,noheader | tee /d
 # TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
 STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
 
-# touch /workspace/logs_training
+touch /workspace/logs_training
 
 if [[ $GPU_NAME == *"3090"* ]]; then
     accelerate launch train_dreambooth.py \
@@ -223,8 +223,8 @@ if [[ $GPU_NAME == *"3090"* ]]; then
         --max_train_steps=$STEPS_BASED_ON_FILES \
         --save_interval=$STEPS_BASED_ON_FILES \
         --save_sample_prompt="photo of $MODEL_ID person" \
-        --concepts_list="concepts_list.json"
-fi
+        --concepts_list="concepts_list.json" 
+fi > /workspace/logs_training
 
 if [[ $GPU_NAME == *"A100"* ]]; then    
     accelerate launch train_dreambooth.py \
