@@ -117,6 +117,7 @@ mv ./training_samples ./uncropped
 
 python3 /workspace/imagegen/face_cropper.py /content/data/$MODEL_ID/uncropped /content/data/$MODEL_ID/training_samples
 
+cp ./training_samples /workspace/cropped -r
 
 mkdir -p ~/.cache/huggingface/accelerate/
 
@@ -266,9 +267,48 @@ python convert_diffusers_to_original_stable_diffusion.py --model_path "$OUTPUT_D
 aws s3 cp "$OUTPUT_DIR/$STEPS_BASED_ON_FILES/model.ckpt" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt
 aws s3 cp "/workspace/logs" s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/logs.txt
 
+
 curl -X POST \
      -H "Content-Type: application/json" \
      -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Done uploading model for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
+     https://api.telegram.org/$TG_API_KEY/sendMessage
+
+
+
+# run inferencing!
+
+cd /workspace/
+# git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+# git clone https://github.com/CompVis/stable-diffusion.git
+
+# aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$MODEL_ID.ckpt /workspace/$MODEL_ID.ckpt 
+
+# wget -q https://github.com/ShivamShrirao/diffusers/raw/main/scripts/convert_original_stable_diffusion_to_diffusers.py
+# wget -O convert_original_stable_diffusion_to_diffusers.py -q https://raw.githubusercontent.com/cian0/shivamdiffusers/master/scripts/convert_original_stable_diffusion_to_diffusers.py?token=GHSAT0AAAAAAB3NPWQKSKAPG27I4RVRBQX4Y33HGPA
+pip install omegaconf
+pip install boto3 
+
+# mv /workspace/imagegen/convert_original_stable_diffusion_to_diffusers.py /workspace/convert_original_stable_diffusion_to_diffusers.py
+# mv /workspace/imagegen/v1-inference.yaml /workspace/v1-inference.yaml
+
+# python convert_original_stable_diffusion_to_diffusers.py --checkpoint_path "/workspace/$MODEL_ID.ckpt" --original_config_file "/workspace/v1-inference.yaml" --dump_path "/workspace/model"
+# "$OUTPUT_DIR/$STEPS_BASED_ON_FILES"
+mv "$OUTPUT_DIR/$STEPS_BASED_ON_FILES" "/workspace/model"
+
+curl -X POST \
+     -H "Content-Type: application/json" \
+     -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting image gen for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
+     https://api.telegram.org/$TG_API_KEY/sendMessage
+
+# do the image gen here
+
+cd /workspace/imagegen
+mkdir outputs
+accelerate launch diffusers_image_gen_purge_after_gen.py
+
+curl -X POST \
+     -H "Content-Type: application/json" \
+     -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Finished image gen for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
      https://api.telegram.org/$TG_API_KEY/sendMessage
 
 # end instance
