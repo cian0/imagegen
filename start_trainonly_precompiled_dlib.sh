@@ -188,6 +188,9 @@ EOT
 
 cd /workspace/sdw/examples/dreambooth/
 
+# TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
+STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
+
 curl -X POST \
      -H "Content-Type: application/json" \
      -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting training for $MODEL_ID $MODEL_KEY $MODEL_CLASS with $STEPS_BASED_ON_FILES steps\", \"disable_notification\": true}" \
@@ -195,9 +198,6 @@ curl -X POST \
 
 
 export GPU_NAME=$(nvidia-smi --query-gpu=gpu_name --format=csv,noheader | tee /dev/tty)
-
-# TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
-STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
 
 touch /workspace/logs_training
 
