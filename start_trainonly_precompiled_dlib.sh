@@ -117,8 +117,6 @@ mv ./training_samples ./uncropped
 
 python3 /workspace/imagegen/face_cropper.py /content/data/$MODEL_ID/uncropped /content/data/$MODEL_ID/training_samples
 
-# TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
-STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
 
 mkdir -p ~/.cache/huggingface/accelerate/
 
@@ -198,6 +196,11 @@ curl -X POST \
 
 export GPU_NAME=$(nvidia-smi --query-gpu=gpu_name --format=csv,noheader | tee /dev/tty)
 
+# TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
+STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
+
+touch /workspace/logs_training
+
 if [[ $GPU_NAME == *"3090"* ]]; then
     accelerate launch train_dreambooth.py \
         --pretrained_model_name_or_path="$MODEL_NAME" \
@@ -221,7 +224,7 @@ if [[ $GPU_NAME == *"3090"* ]]; then
         --save_interval=$STEPS_BASED_ON_FILES \
         --save_sample_prompt="photo of $MODEL_ID person" \
         --concepts_list="concepts_list.json"
-fi
+fi >> /workspace/logs_training
 
 if [[ $GPU_NAME == *"A100"* ]]; then    
     accelerate launch train_dreambooth.py \
