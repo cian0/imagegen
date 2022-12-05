@@ -40,6 +40,8 @@ git checkout 219e279b0376d60382fce6a993641f806710ac44
 cd /workspace/
 git clone https://github.com/$REPO_ID/imagegen.git imagegen
 
+chmod +x /workspace/imagegen/face_detect_purge_diffusers.sh
+
 curl -X POST \
      -H "Content-Type: application/json" \
      -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting processing for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
