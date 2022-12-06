@@ -107,6 +107,7 @@ fi
 
 
 
+cd /content/data/$MODEL_ID/
 mv ./training_samples ./uncropped
 
 python3 /workspace/imagegen/face_cropper.py /content/data/$MODEL_ID/uncropped /content/data/$MODEL_ID/training_samples
