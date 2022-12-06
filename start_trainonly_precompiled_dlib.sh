@@ -166,7 +166,7 @@ cd /workspace/sdw/
 export OUTPUT_DIR="/workspace/sdw/examples/dreambooth/stable_diffusion_weights/output" 
 
 if [[ -z ${STYLE_ID+x} ]]; then 
-    cat <<EOT > concepts_list.json
+    cat <<EOT > /workspace/sdw/examples/dreambooth/concepts_list.json
     [{
         "instance_prompt":      "photo of $MODEL_ID person",
         "class_prompt":         "photo of a person",
@@ -175,7 +175,7 @@ if [[ -z ${STYLE_ID+x} ]]; then
     }]
 EOT
 else 
-    cat <<EOT > concepts_list.json
+    cat <<EOT > /workspace/sdw/examples/dreambooth/concepts_list.json
     [{
         "instance_prompt":      "photo of $MODEL_ID person",
         "class_prompt":         "photo of a person",
