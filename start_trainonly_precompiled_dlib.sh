@@ -9,6 +9,7 @@
 #     && pip install accelerate==0.12.0 transformers==4.24.0 ftfy==6.1.1 bitsandbytes gradio natsort==8.2.0
 
 export MODEL_ID=$_MODEL_ID
+export STYLE_ID=$_STYLE_ID
 export MODEL_KEY=$_MODEL_KEY
 export MODEL_CLASS=$_MODEL_CLASS
 export MODEL_STEPS=$_MODEL_STEPS
@@ -40,10 +41,21 @@ git checkout 219e279b0376d60382fce6a993641f806710ac44
 cd /workspace/
 git clone https://github.com/$REPO_ID/imagegen.git imagegen
 
-curl -X POST \
-     -H "Content-Type: application/json" \
-     -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting processing for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
-     https://api.telegram.org/$TG_API_KEY/sendMessage
+if [[ -z ${STYLE_ID+x} ]]; then 
+    
+    curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting processing for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
+        https://api.telegram.org/$TG_API_KEY/sendMessage
+
+else 
+    
+    curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"Starting processing for $MODEL_ID $MODEL_KEY $MODEL_CLASS with style $STYLE_ID\", \"disable_notification\": true}" \
+        https://api.telegram.org/$TG_API_KEY/sendMessage
+
+fi
 
 # pip install awscli --upgrade --user
 # mv /root/.local/bin/aws* /bin
@@ -59,35 +71,6 @@ aws configure set region "ap-southeast-1"
 aws configure set output "json"
 
 cd /workspace
-# install dlib first
-
-# aws s3 cp s3://$MODEL_BUCKET/dlibwheels/ ./ --recursive
-# pip install /workspace/ubuntu1804/dlib-19.24.99-cp39-cp39-linux_x86_64.whl
-
-
-# if python -c "import dlib" &> /dev/null; then
-#     echo 'all good'
-# else
-#     echo 'uh oh'
-
-#     curl -X POST \
-#         -H "Content-Type: application/json" \
-#         -d "{\"chat_id\": \"$TG_CHANNEL_ID\", \"text\": \"DLIB has to be compiled for $MODEL_ID $MODEL_KEY $MODEL_CLASS\", \"disable_notification\": true}" \
-#         https://api.telegram.org/$TG_API_KEY/sendMessage
-#     pip uninstall -y dlib
-#     apt-get -y install build-essential cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev
-#     git clone https://github.com/davisking/dlib
-#     cd dlib
-#     python3 setup.py install
-# fi
-# aws s3 cp /workspace/dlib/dist/dlib-19.24.99-cp39-cp39-linux_x86_64.whl s3://aimodels-cyian/dlibwheels/ubuntu1804/
-
-# python setup.py bdist_wheel # for building the wheel file
-
-#install face recognition
-# pip3 install face_recognition
-
-cd /workspace
 mkdir -p ~/.huggingface
 echo -n "$HUGGINGFACE_TOKEN" > ~/.huggingface/token
 
@@ -96,7 +79,9 @@ GPU_NAME=`nvidia-smi --query-gpu=gpu_name --format=csv,noheader`
 
 aws s3 cp s3://$MODEL_BUCKET/xformerwheels/ ./ --recursive
 
-aws s3 cp s3://$MODEL_BUCKET/class_images/person /content/data/person --recursive
+# aws s3 cp s3://$MODEL_BUCKET/class_images/person /content/data/person --recursive
+
+aws s3 cp s3://$MODEL_BUCKET/class_images/ /content/data/ --recursive
 
 if [[ $GPU_NAME == *"3090"* ]]; then
     export FORCE_CUDA="1" && \
@@ -112,6 +97,15 @@ fi
 mkdir -p /content/data/$MODEL_ID
 cd /content/data/$MODEL_ID/
 aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$TRAINING_PATH ./training_samples --recursive
+if [[ -z ${STYLE_ID+x} ]]; then 
+    echo "var is unset";
+else 
+    mkdir -p /content/data/$STYLE_ID
+    cd /content/data/$STYLE_ID/
+    aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$STYLE_ID/ ./training_samples --recursive
+fi
+
+
 
 mv ./training_samples ./uncropped
 
@@ -166,18 +160,12 @@ if [[ $CONVERT_PRETRAINED_TO_DIFFUSERS == 1 ]]; then
 fi
 
 
-
-# pip install -qq git+https://github.com/ShivamShrirao/diffusers@219e279b0376d60382fce6a993641f806710ac44
-# pip install -U --pre triton==2.0.0.dev20221105 \
-#     && pip install accelerate==0.12.0 transformers==4.24.0 ftfy==6.1.1 bitsandbytes gradio natsort==8.2.0
-
 cd /workspace/sdw/
-# git checkout 219e279b0376d60382fce6a993641f806710ac44
 
-# export MODEL_NAME=joachimsallstrom/Double-Exposure-Diffusion"runwayml/stable-diffusion-v1-5" 
 export OUTPUT_DIR="/workspace/sdw/examples/dreambooth/stable_diffusion_weights/output" 
 
-cat <<EOT > /workspace/sdw/examples/dreambooth/concepts_list.json
+if [[ -z ${STYLE_ID+x} ]]; then 
+    cat <<EOT > concepts_list.json
     [{
         "instance_prompt":      "photo of $MODEL_ID person",
         "class_prompt":         "photo of a person",
@@ -185,14 +173,38 @@ cat <<EOT > /workspace/sdw/examples/dreambooth/concepts_list.json
         "class_data_dir":       "/content/data/person"
     }]
 EOT
+else 
+    cat <<EOT > concepts_list.json
+    [{
+        "instance_prompt":      "photo of $MODEL_ID person",
+        "class_prompt":         "photo of a person",
+        "instance_data_dir":    "/content/data/$MODEL_ID/training_samples/",
+        "class_data_dir":       "/content/data/person"
+    },{
+        "instance_prompt":      "$STYLE_ID artstyle",
+        "class_prompt":         "artstyle",
+        "instance_data_dir":    "/content/data/$STYLE_ID/training_samples/",
+        "class_data_dir":       "/content/data/artstyle"
+    }]
+EOT
+fi
 
 cd /workspace/sdw/examples/dreambooth/
 
-# TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
-STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
+if [[ -z ${STYLE_ID+x} ]]; then 
+    # TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
+    STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
 
-if [[ $STEPS_BASED_ON_FILES < 2200 ]]; then    
-    STEPS_BASED_ON_FILES=2200 #minimum number of steps
+    if [[ $STEPS_BASED_ON_FILES < 2200 ]]; then    
+        STEPS_BASED_ON_FILES=2200 #minimum number of steps
+    fi
+else 
+    # TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
+    STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
+
+    if [[ $STEPS_BASED_ON_FILES < 4400 ]]; then    
+        STEPS_BASED_ON_FILES=4400 #minimum number of steps
+    fi
 fi
 
 curl -X POST \
