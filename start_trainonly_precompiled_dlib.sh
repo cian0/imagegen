@@ -41,7 +41,7 @@ git checkout 219e279b0376d60382fce6a993641f806710ac44
 cd /workspace/
 git clone https://github.com/$REPO_ID/imagegen.git imagegen
 
-if [[ -z ${STYLE_ID+x} ]]; then 
+if [[ -z ${_STYLE_ID+x} ]]; then 
     
     curl -X POST \
         -H "Content-Type: application/json" \
@@ -97,7 +97,7 @@ fi
 mkdir -p /content/data/$MODEL_ID
 cd /content/data/$MODEL_ID/
 aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$TRAINING_PATH ./training_samples --recursive
-if [[ -z ${STYLE_ID+x} ]]; then 
+if [[ -z ${_STYLE_ID+x} ]]; then 
     echo "var is unset";
 else 
     mkdir -p /content/data/$STYLE_ID
@@ -165,7 +165,7 @@ cd /workspace/sdw/
 
 export OUTPUT_DIR="/workspace/sdw/examples/dreambooth/stable_diffusion_weights/output" 
 
-if [[ -z ${STYLE_ID+x} ]]; then 
+if [[ -z ${_STYLE_ID+x} ]]; then 
     cat <<EOT > /workspace/sdw/examples/dreambooth/concepts_list.json
     [{
         "instance_prompt":      "photo of $MODEL_ID person",
@@ -192,7 +192,7 @@ fi
 
 cd /workspace/sdw/examples/dreambooth/
 
-if [[ -z ${STYLE_ID+x} ]]; then 
+if [[ -z ${_STYLE_ID+x} ]]; then 
     # TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
     STEPS_BASED_ON_FILES=$((`ls /content/data/$MODEL_ID/training_samples | wc -l`*110))
 
