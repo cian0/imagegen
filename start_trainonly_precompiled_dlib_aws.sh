@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source activate pytorch
 # git clone https://github.com/ShivamShrirao/diffusers.git sdw
 # cd ~/sdw/examples/dreambooth
 # wget -q https://github.com/ShivamShrirao/diffusers/raw/main/examples/dreambooth/train_dreambooth.py \
