@@ -2,7 +2,7 @@
 
 source activate pytorch
 # git clone https://github.com/ShivamShrirao/diffusers.git sdw
-# cd ~/sdw/examples/dreambooth
+# cd /home/ubuntu/sdw/examples/dreambooth
 # wget -q https://github.com/ShivamShrirao/diffusers/raw/main/examples/dreambooth/train_dreambooth.py \
 #     && wget -q https://github.com/ShivamShrirao/diffusers/raw/main/scripts/convert_diffusers_to_original_stable_diffusion.py \
 #     && pip install -qq git+https://github.com/ShivamShrirao/diffusers@219e279b0376d60382fce6a993641f806710ac44  \
@@ -34,12 +34,13 @@ source activate pytorch
 # export TG_API_KEY=$_TG_API_KEY
 # export TG_CHANNEL_ID=$_TG_CHANNEL_ID
 
-cd ~/sdw
+cd /home/ubuntu/sdw
 git reset --hard
 # lets use the old commit since new ones are broken. 
 git checkout 219e279b0376d60382fce6a993641f806710ac44
 
 cd ~/
+rm -rf imagegen
 git clone https://github.com/$REPO_ID/imagegen.git imagegen
 
 if [[ -z ${_STYLE_ID+x} ]]; then 
@@ -80,9 +81,9 @@ GPU_NAME=`nvidia-smi --query-gpu=gpu_name --format=csv,noheader`
 
 aws s3 cp s3://$MODEL_BUCKET/xformerwheels/ ./ --recursive
 
-# aws s3 cp s3://$MODEL_BUCKET/class_images/person ~/sdw/examples/dreambooth/content/data/person --recursive
+# aws s3 cp s3://$MODEL_BUCKET/class_images/person /home/ubuntu/sdw/examples/dreambooth/content/data/person --recursive
 
-aws s3 cp s3://$MODEL_BUCKET/class_images/ ~/sdw/examples/dreambooth/content/data/ --recursive
+aws s3 cp s3://$MODEL_BUCKET/class_images/ /home/ubuntu/sdw/examples/dreambooth/content/data/ --recursive
 
 if [[ $GPU_NAME == *"3090"* ]]; then
     export FORCE_CUDA="1" && \
@@ -95,23 +96,23 @@ if [[ $GPU_NAME == *"A100"* ]]; then
         CUDA_VISIBLE_DEVICES=0 pip install ~/a100/xformers-0.0.15.dev0+fd21b40.d20221115-cp39-cp39-linux_x86_64.a100.cuda11.8.whl
 fi
 
-mkdir -p ~/sdw/examples/dreambooth/content/data/$MODEL_ID
-cd ~/sdw/examples/dreambooth/content/data/$MODEL_ID/
+mkdir -p /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID
+cd /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/
 aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$MODEL_ID/$TRAINING_PATH ./training_samples --recursive
 if [[ -z ${_STYLE_ID+x} ]]; then 
     echo "var is unset";
 else 
-    mkdir -p ~/sdw/examples/dreambooth/content/data/$STYLE_ID
-    cd ~/sdw/examples/dreambooth/content/data/$STYLE_ID/
+    mkdir -p /home/ubuntu/sdw/examples/dreambooth/content/data/$STYLE_ID
+    cd /home/ubuntu/sdw/examples/dreambooth/content/data/$STYLE_ID/
     aws s3 cp s3://$MODEL_BUCKET/$MODEL_PATH/$STYLE_ID/ ./training_samples --recursive
 fi
 
 
 
-cd ~/sdw/examples/dreambooth/content/data/$MODEL_ID/
+cd /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/
 mv ./training_samples ./uncropped
 
-python3 ~/imagegen/face_cropper.py ~/sdw/examples/dreambooth/content/data/$MODEL_ID/uncropped ~/sdw/examples/dreambooth/content/data/$MODEL_ID/training_samples
+python3 ~/imagegen/face_cropper.py /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/uncropped /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/training_samples
 
 
 mkdir -p ~/.cache/huggingface/accelerate/
@@ -162,12 +163,12 @@ if [[ $CONVERT_PRETRAINED_TO_DIFFUSERS == 1 ]]; then
 fi
 
 
-cd ~/sdw/
+cd /home/ubuntu/sdw/
 
-export OUTPUT_DIR="~/sdw/examples/dreambooth/stable_diffusion_weights/output" 
+export OUTPUT_DIR="/home/ubuntu/sdw/examples/dreambooth/stable_diffusion_weights/output" 
 
 if [[ -z ${_STYLE_ID+x} ]]; then 
-    cat <<EOT > ~/sdw/examples/dreambooth/concepts_list.json
+    cat <<EOT > /home/ubuntu/sdw/examples/dreambooth/concepts_list.json
     [{
         "instance_prompt":      "photo of $MODEL_ID person",
         "class_prompt":         "photo of a person",
@@ -176,7 +177,7 @@ if [[ -z ${_STYLE_ID+x} ]]; then
     }]
 EOT
 else 
-    cat <<EOT > ~/sdw/examples/dreambooth/concepts_list.json
+    cat <<EOT > /home/ubuntu/sdw/examples/dreambooth/concepts_list.json
     [{
         "instance_prompt":      "photo of $MODEL_ID person",
         "class_prompt":         "photo of a person",
@@ -191,18 +192,18 @@ else
 EOT
 fi
 
-cd ~/sdw/examples/dreambooth/
+cd /home/ubuntu/sdw/examples/dreambooth/
 
 if [[ -z ${_STYLE_ID+x} ]]; then 
     # TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
-    STEPS_BASED_ON_FILES=$((`ls ~/sdw/examples/dreambooth/content/data/$MODEL_ID/training_samples | wc -l`*110))
+    STEPS_BASED_ON_FILES=$((`ls /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/training_samples | wc -l`*110))
 
     if [[ $STEPS_BASED_ON_FILES < 2200 ]]; then    
         STEPS_BASED_ON_FILES=2200 #minimum number of steps
     fi
 else 
     # TRAINING_FILE_COUNT=`ls /etc | wc -l`*100
-    STEPS_BASED_ON_FILES=$((`ls ~/sdw/examples/dreambooth/content/data/$MODEL_ID/training_samples | wc -l`*110))
+    STEPS_BASED_ON_FILES=$((`ls /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/training_samples | wc -l`*110))
 
     if [[ $STEPS_BASED_ON_FILES < 4400 ]]; then    
         STEPS_BASED_ON_FILES=4400 #minimum number of steps
@@ -315,14 +316,14 @@ curl -X POST \
      https://api.telegram.org/$TG_API_KEY/sendMessage
 
 # end instance
-cd ~
-cat ~/.ssh/authorized_keys | md5sum | awk '{print $1}' > ssh_key_hv; echo -n $VAST_CONTAINERLABEL | md5sum | awk '{print $1}' > instance_id_hv; head -c -1 -q ssh_key_hv instance_id_hv > ~/.vast_api_key;
-apt-get install -y wget; wget https://raw.githubusercontent.com/vast-ai/vast-python/master/vast.py -O vast; chmod +x vast;
+# cd ~
+# cat ~/.ssh/authorized_keys | md5sum | awk '{print $1}' > ssh_key_hv; echo -n $VAST_CONTAINERLABEL | md5sum | awk '{print $1}' > instance_id_hv; head -c -1 -q ssh_key_hv instance_id_hv > ~/.vast_api_key;
+# apt-get install -y wget; wget https://raw.githubusercontent.com/vast-ai/vast-python/master/vast.py -O vast; chmod +x vast;
 
 FILE=$OUTPUT_DIR/$STEPS_BASED_ON_FILES/model.ckpt
 if test -f "$FILE"; then
     echo "$FILE exists."
-    ./vast destroy instance ${VAST_CONTAINERLABEL:2}
+    # ./vast destroy instance ${VAST_CONTAINERLABEL:2}
 else 
     curl -X POST \
         -H "Content-Type: application/json" \
