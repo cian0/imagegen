@@ -359,6 +359,7 @@ FILE=$OUTPUT_DIR/$STEPS_BASED_ON_FILES/model.ckpt
 if test -f "$FILE"; then
     echo "$FILE exists."
     # ./vast destroy instance ${VAST_CONTAINERLABEL:2}
+    shutdown -h now
 else 
     curl -X POST \
         -H "Content-Type: application/json" \
