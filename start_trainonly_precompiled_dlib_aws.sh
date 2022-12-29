@@ -35,9 +35,9 @@ source activate pytorch
 # export TG_CHANNEL_ID=$_TG_CHANNEL_ID
 
 cd /home/ubuntu/sdw
-git reset --hard
+# git reset --hard
 # lets use the old commit since new ones are broken. 
-git checkout 219e279b0376d60382fce6a993641f806710ac44
+# git checkout 219e279b0376d60382fce6a993641f806710ac44
 
 cd ~/
 rm -rf imagegen
@@ -79,11 +79,11 @@ echo -n "$HUGGINGFACE_TOKEN" > ~/.huggingface/token
 
 GPU_NAME=`nvidia-smi --query-gpu=gpu_name --format=csv,noheader`
 
-aws s3 cp s3://$MODEL_BUCKET/xformerwheels/ ./ --recursive
+# aws s3 cp s3://$MODEL_BUCKET/xformerwheels/ ./ --recursive
 
 # aws s3 cp s3://$MODEL_BUCKET/class_images/person /home/ubuntu/sdw/examples/dreambooth/content/data/person --recursive
 
-aws s3 cp s3://$MODEL_BUCKET/class_images/ /home/ubuntu/sdw/examples/dreambooth/content/data/ --recursive
+# aws s3 cp s3://$MODEL_BUCKET/class_images/ /home/ubuntu/sdw/examples/dreambooth/content/data/ --recursive
 
 if [[ $GPU_NAME == *"3090"* ]]; then
     export FORCE_CUDA="1" && \
@@ -110,6 +110,7 @@ fi
 
 
 cd /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/
+rm -rf uncropped
 mv ./training_samples ./uncropped
 
 python3 ~/imagegen/face_cropper.py /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/uncropped /home/ubuntu/sdw/examples/dreambooth/content/data/$MODEL_ID/training_samples
@@ -232,7 +233,6 @@ if [[ $GPU_NAME == *"Tesla T4"* ]]; then
         --resolution=512 \
         --train_batch_size=1 \
         --gradient_checkpointing \
-        --not_cache_latents \
         --use_8bit_adam \
         --train_text_encoder \
         --center_crop \
@@ -247,6 +247,8 @@ if [[ $GPU_NAME == *"Tesla T4"* ]]; then
         --save_interval=$STEPS_BASED_ON_FILES \
         --save_sample_prompt="photo of $MODEL_ID person" \
         --concepts_list="concepts_list.json" 
+
+        # --not_cache_latents \
 fi > ~/logs_training
 
 if [[ $GPU_NAME == *"3090"* ]]; then
