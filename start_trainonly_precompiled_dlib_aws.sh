@@ -222,6 +222,35 @@ export GPU_NAME=$(nvidia-smi --query-gpu=gpu_name --format=csv,noheader | tee /d
 touch ~/logs_training
 
 export OUTPUT_DIR_TRAINING="stable_diffusion_weights/output" 
+
+if [[ $GPU_NAME == *"NVIDIA A10G"* ]]; then
+    accelerate launch train_dreambooth.py \
+        --pretrained_model_name_or_path="$MODEL_NAME" \
+        --pretrained_vae_name_or_path="stabilityai/sd-vae-ft-mse" \
+        --output_dir=$OUTPUT_DIR_TRAINING \
+        --revision="fp16" \
+        --with_prior_preservation --prior_loss_weight=1.0 \
+        --seed=1337 \
+        --resolution=512 \
+        --train_batch_size=1 \
+        --train_text_encoder \
+        --center_crop \
+        --mixed_precision="fp16" \
+        --gradient_accumulation_steps=2 \
+        --learning_rate=1e-6 \
+        --lr_scheduler="constant" \
+        --lr_warmup_steps=0 \
+        --num_class_images=80 \
+        --sample_batch_size=4 \
+        --max_train_steps=$STEPS_BASED_ON_FILES \
+        --save_interval=$STEPS_BASED_ON_FILES \
+        --save_sample_prompt="photo of $MODEL_ID person" \
+        --concepts_list="concepts_list.json" 
+
+        # --gradient_checkpointing \
+        # --not_cache_latents \
+fi > ~/logs_training
+
 if [[ $GPU_NAME == *"Tesla T4"* ]]; then
     accelerate launch train_dreambooth.py \
         --pretrained_model_name_or_path="$MODEL_NAME" \
